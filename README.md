@@ -1,4 +1,4 @@
-# CSF363 Baseline Language
+# G18 - CSF363 Baseline Language
 
 Welcome to CS F363! This is the baseline language project that will be used for all further labs/assignments  in this course.
 

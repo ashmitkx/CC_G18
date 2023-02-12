@@ -74,7 +74,7 @@ Expr : TINT_LIT
         if(symbol_table.contains($1))
             $$ = new NodeIdent($1); 
         else
-            yyerror("using undeclared variable.\n");
+            yyerror("using undeclared variable: " + $1 + "\n");
      }
      | Expr TPLUS Expr
      { $$ = new NodeBinOp(NodeBinOp::PLUS, $1, $3); }
