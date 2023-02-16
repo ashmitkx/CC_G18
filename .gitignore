@@ -6,3 +6,4 @@ src/*_lex.cc
 .vscode/
 compile_flags.txt
 .clang-format
+preprocessed.txt
