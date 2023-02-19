@@ -10,6 +10,7 @@ using namespace std;
 
 unordered_map <string, string> m;
 string debug = "";
+int ifstate = 0;
 
 extern int yyerror(std::string msg);
 
@@ -89,6 +90,95 @@ string substitute(string ident) {
     else  
         return 1;
 }
+"#ifdef"[ ]+ {
+    if (ifstate != 0) {
+        yyerror("unexpected #ifdef");
+        return 0;
+    }
+    
+    char e;
+    string data = "", key = "";
+    
+    while((e = yyinput()) != 0 && e != '\n') 
+        key += e;
+        
+    while((e = yyinput()) != 0 && e != '#')
+        data += e;
+        
+    if (e == '#')
+        unput(e);
+            
+    if(m.count(key) > 0 && m[key] != "") {    
+        int len = data.length();
+        for(int i = len - 1; i >= 0; i--)
+            unput(data[i]);
+            
+        ifstate = 2;
+    } else {
+        ifstate = 1;
+    }
+}
+"#elif"[ ]+ {
+    // throw error if state is 0
+    if (ifstate == 0) {
+        yyerror("unexpected #elif");
+        return 0;
+    }
+        
+    char e;
+    string data = "", key = "";
+    
+    while((e = yyinput()) != 0 && e != '\n') 
+        key += e;
+        
+    while((e = yyinput()) != 0 && e != '#')
+        data += e;
+        
+    if (e == '#')
+        unput(e);
+            
+    if(m.count(key) > 0 && m[key] != "" && ifstate == 1) {
+        int len = data.length();
+        for(int i = len - 1; i >= 0; i--)
+            unput(data[i]);
+            
+        ifstate = 2;
+    }
+}
+"#else"[ ]* {
+    // throw error if state is 0
+    if (ifstate == 0) {
+        yyerror("unexpected #else");
+        return 0;
+    }
+    
+    char e;
+    string data = "";
+    
+    while((e = yyinput()) != 0 && e != '#')
+        data += e;
+        
+    if (e == '#')
+        unput(e);
+        
+    if (ifstate == 1) {
+        int len = data.length();
+        for(int i = len - 1; i >= 0; i--)
+            unput(data[i]);
+            
+        ifstate = 2;
+    }
+}
+"#endif"[ ]* {
+    // throw error if state not 0
+    if (ifstate == 0) {
+        yyerror("unexpected #endif");
+        return 0;
+    }
+    
+    ifstate = 0; 
+}
+
 "//".*                                  { /* do nothing */ }
 [/][*][^*]*[*]+([^*/][^*]*[*]+)*[/]     { /* do nothing */ }
 .|\n|\r                                 { return 1; }

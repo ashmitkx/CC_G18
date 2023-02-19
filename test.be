@@ -1,12 +1,15 @@
-#def STATEMENTS let a = 5; // lol \
-let x = a * 16; \
-dbg a + b * x
+#def LOL 10
+#def LEL 20
+let x = 1;
+let y = 2;
 
-/*
-    * This is a comment
-    * that spans multiple lines
-    * and is not a doc comment
-**/
+#undef LOL
 
-let b = 10;
-STATEMENTS;
+#ifdef LOL
+dbg x;
+dbg x;
+#elif LEL
+dbg y;
+#else
+dbg 3;
+#endif
