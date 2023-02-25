@@ -24,6 +24,27 @@ std::string NodeBinOp::to_string() {
     return out;
 }
 
+NodeAssign::NodeAssign(std::string id, Node *expr) {
+    type = ASSIGN;
+    identifier = id;
+    expression = expr;
+}
+
+std::string NodeAssign::to_string() {
+    return "(assign " + identifier + ' ' + expression->to_string() + ")";
+}
+
+NodeTernary::NodeTernary(Node *condptr, Node *leftptr, Node *rightptr) {
+    type = TERNARY;
+    condition = condptr;
+    left = leftptr;
+    right = rightptr;
+}
+
+std::string NodeTernary::to_string() {
+    return "(?: " + condition->to_string() + ' ' + left->to_string() + ' ' + right->to_string() + ')';
+}
+
 NodeInt::NodeInt(int val) {
     type = INT_LIT;
     value = val;

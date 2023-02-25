@@ -121,6 +121,13 @@ Value *NodeBinOp::llvm_codegen(LLVMCompiler *compiler) {
     }
 }
 
+Value *NodeAssign::llvm_codegen(LLVMCompiler *compiler) {
+    return nullptr;
+}
+
+Value *NodeTernary::llvm_codegen(LLVMCompiler *compiler) {
+    return nullptr;
+}
 
 Value *NodeDecl::llvm_codegen(LLVMCompiler *compiler) {
     Value *expr = expression->llvm_codegen(compiler);
