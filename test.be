@@ -1,5 +1,14 @@
-let a = 5;
-let b = 2;
-let c = 10;
-a = a ? c : b ? c : b;
-b = c;
+fun abc(a: int, b: int, c: int) : long {
+    let d: long = a * b;
+    if a {
+        d = d + c;
+    }
+    else {
+        d = d * c;
+    }
+    ret d * d;
+}
+
+fun main() : int {
+    let a: int = 5;
+}

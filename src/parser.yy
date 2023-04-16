@@ -25,12 +25,12 @@ int yyerror(std::string msg);
 
 }
 
-%token TPLUS TDASH TSTAR TSLASH TQUESTION TCOLON
+%token TPLUS TDASH TSTAR TSLASH TQUESTION TCOLON TIF TELSE TFUN TRET TLBRACE TRBRACE TCOMMA TEOF TMAIN
 %token <lexeme> TINT_LIT TIDENT TTYPE
 %token INT TLET TDBG
 %token TSCOL TLPAREN TRPAREN TEQUAL
 
-%type <node> Expr Stmt
+%type <node> Expr Stmt 
 %type <stmts> Program StmtList
 
 %right TQUESTION TCOLON
