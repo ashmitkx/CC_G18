@@ -26,7 +26,7 @@ int yyerror(std::string msg);
 }
 
 %token TPLUS TDASH TSTAR TSLASH TQUESTION TCOLON
-%token <lexeme> TINT_LIT TIDENT
+%token <lexeme> TINT_LIT TIDENT TTYPE
 %token INT TLET TDBG
 %token TSCOL TLPAREN TRPAREN TEQUAL
 
@@ -50,16 +50,15 @@ StmtList : Stmt
 	     | StmtList TSCOL Stmt 
          { $$->push_back($3); }
 	     ;
-
-Stmt : TLET TIDENT TEQUAL Expr
+Stmt : TLET TIDENT TCOLON TTYPE TEQUAL Expr
      {
         if(symbol_table.contains($2)) {
             // tried to redeclare variable, so error
             yyerror("tried to redeclare variable.\n");
         } else {
-            symbol_table.insert($2);
-
-            $$ = new NodeDecl($2, $4);
+            symbol_table.insert($2, $4);
+            
+            $$ = new NodeDecl($2, symbol_table.get_type($2), $6);
         }
      }
      | TDBG Expr
@@ -69,7 +68,7 @@ Stmt : TLET TIDENT TEQUAL Expr
      | TIDENT TEQUAL Expr
      { 
         if(symbol_table.contains($1)) {
-            $$ = new NodeAssign($1, $3);
+            $$ = new NodeAssign($1, symbol_table.get_type($1), $3);
         } else {
             yyerror("tried to assign to undeclared variable.\n");
         }
@@ -77,11 +76,11 @@ Stmt : TLET TIDENT TEQUAL Expr
      ;
 
 Expr : TINT_LIT               
-     { $$ = new NodeInt(stoi($1)); }
+     { $$ = new NodeInt(stol($1)); }
      | TIDENT
      { 
         if(symbol_table.contains($1))
-            $$ = new NodeIdent($1); 
+            $$ = new NodeIdent($1, symbol_table.get_type($1)); 
         else
             yyerror("using undeclared variable: " + $1 + "\n");
      }
