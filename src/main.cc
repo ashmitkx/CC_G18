@@ -2,6 +2,7 @@
 #include <cstring>
 #include <fstream>
 #include <iostream>
+#include <stack>
 #include <string>
 #include <vector>
 
@@ -21,6 +22,162 @@ NodeStmts* final_values;
 #define ARG_OPTION_S 2
 #define ARG_OPTION_O 3
 #define ARG_FAIL -1
+
+using namespace std;
+
+bool is_number(string s) {
+    for (int i = 0; i < s.length(); i++) {
+        if (s[i] < '0' || s[i] > '9')
+            return false;
+    }
+    return true;
+}
+
+bool is_var_name(string s) {
+    for (int i = 0; i < s.length(); i++) {
+        if (!((s[i] <= 'z' && s[i] >= 'a') || (s[i] <= 'Z' && s[i] >= 'A')))
+            return false;
+    }
+    return true;
+}
+
+bool is_op(string s) {
+    return s == "+" || s == "-" || s == "*" || s == "/";
+}
+
+string eval(string as, string bs, string op) {
+    long a = stol(as), b = stol(bs), out = 0;
+
+    if (op == "+")
+        out = a + b;
+    else if (op == "-")
+        out = a - b;
+    else if (op == "*")
+        out = a * b;
+    else if (op == "/")
+        out = a / b;
+
+    return to_string(out);
+}
+
+string optimize_let(string s) {
+    stack<string> st, temp_st;
+    string ans = "", var, type;
+    int found_let = 0, found_var = 0, brack_depth = 0, let_brack_depth = 0;
+
+    for (int i = 0; i < s.length(); i++) {
+        if (found_var == 1) {
+            if (i < s.length() - 1)
+                ans += s[i];
+        } else if (s[i] == '(') {
+            st.push("(");
+            brack_depth++;
+        } else if (s[i] == ')') {
+            string val = st.top();
+            st.pop();
+
+            if (st.empty())
+                continue;
+
+            if (val != "(")
+                st.pop();
+            brack_depth--;
+
+            if (brack_depth == let_brack_depth - 1 && let_brack_depth != 0) {
+                ans = val;
+            } else if (!is_number(st.top()))
+                st.push(val);
+            else {
+                string as = st.top();
+                st.pop();
+                string op = st.top();
+                st.pop();
+
+                st.push(eval(as, val, op));
+            }
+        } else if (s[i] == ' ') {
+            continue;
+        } else {
+            string temp = "";
+            while (s[i] != ' ' && s[i] != ')') {
+                temp += s[i];
+                i++;
+            }
+            i--;
+
+            if (temp == "let") {
+                let_brack_depth = brack_depth;
+                found_let = 1;
+                continue;
+            }
+
+            if (found_let == 1) {
+                var = temp;
+                found_let = 2;
+                continue;
+            }
+
+            if (found_let == 2) {
+                type = temp;
+                found_let = 0;
+                continue;
+            }
+
+            if (is_op(temp))
+                st.push(temp);
+            else if (is_var_name(temp)) {
+                while (!st.empty()) {
+                    temp_st.push(st.top());
+                    st.pop();
+                }
+                temp_st.pop();
+                temp_st.pop();
+                while (!temp_st.empty()) {
+                    ans += temp_st.top();
+                    if (is_op(temp_st.top()) || is_number(temp_st.top()))
+                        ans += " ";
+                    temp_st.pop();
+                }
+                ans += temp;
+                found_var = 1;
+            } else if (!is_number(st.top()))
+                st.push(temp);
+            else {
+                string as = st.top();
+                st.pop();
+                string op = st.top();
+                st.pop();
+
+                st.push(eval(as, temp, op));
+            }
+        }
+    }
+
+    return "(let (" + var + " " + type + ") " + ans + ")";
+}
+
+int optimize(string s) {
+    s = s.substr(7, s.length() - 7);  // remove begin
+    s = s.substr(0, s.length() - 1);  // remove last bracket
+    string t = "";
+    FILE* fp = fopen("./bin/opt.txt", "w");
+    int brack_count = 0;
+    for (int i = 0; i < s.length(); i++) {
+        if (s[i] == '(')
+            brack_count++;
+        if (s[i] == ')')
+            brack_count--;
+        t += s[i];
+        if (brack_count == 0) {
+            if (t.substr(0, 4) == "(let") {
+                fputs(optimize_let(t).c_str(), fp);
+            } else
+                fputs(t.c_str(), fp);
+            t = "";
+        }
+    }
+    fclose(fp);
+}
 
 int parse_arguments(int argc, char* argv[]) {
     if (argc == 3 || argc == 4) {
@@ -125,7 +282,8 @@ int main(int argc, char* argv[]) {
         if (arg_option == ARG_OPTION_P) {
             std::cout << final_values->to_string() << std::endl;
             return 0;
-        }
+        } 
+        optimize(final_values->to_string());
 
         llvm::LLVMContext context;
         LLVMCompiler compiler(&context, "base");

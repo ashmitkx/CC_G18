@@ -42,7 +42,7 @@ std::string NodeBinOp::to_string() {
         case DIV: out += '/'; break;
     }
 
-    out += ':' + dtype + ' ' + left->to_string() + ' ' + right->to_string() + ')';
+    out += ' ' + left->to_string() + ' ' + right->to_string() + ')';
 
     return out;
 }
@@ -84,7 +84,7 @@ NodeInt::NodeInt(long val) {
 }
 
 std::string NodeInt::to_string() {
-    return std::to_string(value) + ':' + dtype;
+    return std::to_string(value);
 }
 
 NodeStmts::NodeStmts() {
@@ -112,12 +112,13 @@ NodeDecl::NodeDecl(std::string id, std::string datatype, Node *expr) {
         yyerror("Cannot coerce " + expr->dtype + " to " + datatype + " in declaration.");
 
     type = ASSN;
+    dtype = datatype;
     identifier = id;
     expression = expr;
 }
 
 std::string NodeDecl::to_string() {
-    return "(let " + identifier + " " + expression->to_string() + ")";
+    return "(let (" + identifier + " " + dtype +  ") " + expression->to_string() + ")";
 }
 
 NodeDebug::NodeDebug(Node *expr) {
@@ -134,5 +135,5 @@ NodeIdent::NodeIdent(std::string ident, std::string datatype) {
     dtype = datatype;
 }
 std::string NodeIdent::to_string() {
-    return identifier + ':' + dtype;
+    return identifier;
 }

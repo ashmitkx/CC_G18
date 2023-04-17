@@ -1,14 +1,3 @@
-fun abc(a: int, b: int, c: int) : long {
-    let d: long = a * b;
-    if a {
-        d = d + c;
-    }
-    else {
-        d = d * c;
-    }
-    ret d * d;
-}
-
-fun main() : int {
-    let a: int = 5;
-}
+let a : int = 5;
+let b : long = 5 + 2 + a - 3 * 2;
+dbg a;
