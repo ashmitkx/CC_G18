@@ -280,7 +280,7 @@ int main(int argc, char* argv[]) {
 
     if (final_values) {
         if (arg_option == ARG_OPTION_P) {
-            std::cout << final_values->to_string() << std::endl;
+            std::cout << "(begin" << final_values->to_string() << ")" << std::endl;
             return 0;
         } 
         optimize(final_values->to_string());

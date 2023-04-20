@@ -33,7 +33,19 @@ NodeBinOp::NodeBinOp(NodeBinOp::Op ope, Node *leftptr, Node *rightptr) {
     dtype = type_coercion(left->dtype, right->dtype);
 }
 
-std::string NodeBinOp::to_string() {
+NodeIf::NodeIf(Node *expr, Node *leftptr, Node *rightptr)
+{
+    expression = expr;
+    left = leftptr;
+    right = rightptr;
+}
+
+std::string NodeIf::to_string() {
+    return "(if-else " + expression->to_string() + left->to_string() + right->to_string() + ")";
+}
+
+    std::string
+    NodeBinOp::to_string() {
     std::string out = "(";  
     switch(op) {
         case PLUS: out += '+'; break;
@@ -97,12 +109,10 @@ void NodeStmts::push_back(Node *node) {
 }
 
 std::string NodeStmts::to_string() {
-    std::string out = "(begin";
+    std::string out = "";
     for(auto i : list) {
         out += " " + i->to_string();
     }
-
-    out += ')';
 
     return out;
 }
@@ -136,4 +146,22 @@ NodeIdent::NodeIdent(std::string ident, std::string datatype) {
 }
 std::string NodeIdent::to_string() {
     return identifier;
+}
+
+NodeFunct::NodeFunct(std::string id, std::string return_dtype, std::vector<std::pair<std::string, std::string>>& par_list, Node* function_body) {
+    name = id;
+    body = function_body;
+    return_type = return_dtype;
+    parameter_list = par_list;
+}
+
+std::string NodeFunct:: to_string() {
+    std::string parameters = "(";
+    for(auto& param: parameter_list)
+    {
+        parameters += "(" + param.first + " " + param.second + ") ";
+    }
+    parameters += ')';
+    
+    return "(fun " + parameters + return_type + body -> to_string() + ")";
 }

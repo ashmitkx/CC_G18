@@ -41,16 +41,16 @@ int yyerror(std::string msg);
 
 Program :                
         { final_values = nullptr; }
-        | StmtList TSCOL 
+        | StmtList 
         { final_values = $1; }
 	    ;
 
 StmtList : Stmt                
          { $$ = new NodeStmts(); $$->push_back($1); }
-	     | StmtList TSCOL Stmt 
-         { $$->push_back($3); }
+	     | StmtList Stmt 
+         { $$->push_back($2); }
 	     ;
-Stmt : TLET TIDENT TCOLON TTYPE TEQUAL Expr
+Stmt : TLET TIDENT TCOLON TTYPE TEQUAL Expr TSCOL
      {
         if(symbol_table.contains($2)) {
             // tried to redeclare variable, so error
@@ -61,11 +61,11 @@ Stmt : TLET TIDENT TCOLON TTYPE TEQUAL Expr
             $$ = new NodeDecl($2, symbol_table.get_type($2), $6);
         }
      }
-     | TDBG Expr
+     | TDBG Expr TSCOL
      { 
         $$ = new NodeDebug($2);
      }
-     | TIDENT TEQUAL Expr
+     | TIDENT TEQUAL Expr TSCOL
      { 
         if(symbol_table.contains($1)) {
             $$ = new NodeAssign($1, symbol_table.get_type($1), $3);
@@ -73,6 +73,13 @@ Stmt : TLET TIDENT TCOLON TTYPE TEQUAL Expr
             yyerror("tried to assign to undeclared variable.\n");
         }
      }
+     | TIF Expr TLBRACE StmtList TRBRACE TELSE TLBRACE StmtList TRBRACE
+     {
+        $$ = new NodeIf($2, $4, $8);
+     }
+     /* | TFUN TIDENT TLPAREN ??? TRPAREN TCOLON TTYPE TLBRACE StmtList TRBRACE
+     {
+     } */
      ;
 
 Expr : TINT_LIT               
@@ -96,7 +103,7 @@ Expr : TINT_LIT
      { $$ = new NodeBinOp(NodeBinOp::DIV, $1, $3); }
      | TLPAREN Expr TRPAREN { $$ = $2; }
      ;
-
+     
 %%
 
 int yyerror(std::string msg) {

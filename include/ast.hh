@@ -114,5 +114,27 @@ struct NodeIdent : public Node {
     std::string to_string();
     llvm::Value *llvm_codegen(LLVMCompiler *compiler);
 };
+struct NodeIf: public Node {
+    Node *expression, *left, *right;
+    NodeIf(Node *expression, Node *left, Node *right);
+    std::string to_string();
+    llvm::Value *llvm_codegen(LLVMCompiler *compiler);
+};
+
+struct NodeFunct: public Node
+{
+    NodeFunct(std::string id,
+              std::string return_datatype,
+              std::vector<std::pair<std::string, std::string>>& parameter_list,
+              Node* body);
+    
+    Node* body;
+    std::string name;
+    std::vector<std::pair<std::string, std::string>> parameter_list;
+    std::string return_type;
+    std::string to_string();
+    
+    llvm::Value* llvm_codegen(LLVMCompiler* compiler);
+};
 
 #endif
