@@ -26,7 +26,7 @@ NodeStmts* final_values;
 using namespace std;
 
 bool is_number(string s) {
-    for (int i = 0; i < s.length(); i++) {
+    for (ulong i = 0; i < s.length(); i++) {
         if (s[i] < '0' || s[i] > '9')
             return false;
     }
@@ -34,7 +34,7 @@ bool is_number(string s) {
 }
 
 bool is_var_name(string s) {
-    for (int i = 0; i < s.length(); i++) {
+    for (ulong i = 0; i < s.length(); i++) {
         if (!((s[i] <= 'z' && s[i] >= 'a') || (s[i] <= 'Z' && s[i] >= 'A')))
             return false;
     }
@@ -65,7 +65,7 @@ string optimize_let(string s) {
     string ans = "", var, type;
     int found_let = 0, found_var = 0, brack_depth = 0, let_brack_depth = 0;
 
-    for (int i = 0; i < s.length(); i++) {
+    for (ulong i = 0; i < s.length(); i++) {
         if (found_var == 1) {
             if (i < s.length() - 1)
                 ans += s[i];
@@ -160,8 +160,8 @@ string eval_if_else_condition(string s) {
     stack <string> st;
     string ans = "";
     int brack_depth = 0;
-    
-    for (int i = 0; i < s.length(); i++) {
+
+    for (ulong i = 0; i < s.length(); i++) {
         if (s[i] == '(') {
             st.push("(");
             brack_depth++;
@@ -210,7 +210,7 @@ string eval_if_else_condition(string s) {
             }
         }
     }
-    
+
     return st.top();
 }
 
@@ -219,7 +219,7 @@ string optimize_if_else(string s){
     int bracket = 0;
     int index = 0;
     if(s[9] != '('){
-        for(int i = 9; i < s.length(); i++){
+        for (ulong i = 9; i < s.length(); i++) {
             if(s[i] == ' '){
                 condition = s.substr(9, i-9);
                 index = i+1;
@@ -228,14 +228,14 @@ string optimize_if_else(string s){
         }
     }
     else{
-        for(int i = 9; i < s.length(); i++){
+        for (ulong i = 9; i < s.length(); i++) {
             if(s[i] == '(')
                 bracket++;
             if(s[i] == ')')
                 bracket--;
             if(bracket == 0){
                 condition = s.substr(9, i-9);
-                for(int j = 0; j < condition.length(); j++)
+                for (ulong j = 0; j < condition.length(); j++)
                     if((condition[j] <= 'z' && condition[j] >= 'a') || (condition[j] <= 'Z' && condition[j] >= 'A'))
                             return s;
                 condition = eval_if_else_condition(condition);
@@ -249,7 +249,7 @@ string optimize_if_else(string s){
         int cond = stoi(condition);
         string st = "", ret = "";
         int bc = 0;
-        for(int i = index; i < s.length(); i++){
+        for (ulong i = index; i < s.length(); i++) {
             if(s[i] == '(')
                 bc++;
             if(s[i] == ')')
@@ -261,7 +261,7 @@ string optimize_if_else(string s){
                     st = s.substr(i+2, s.length()-i-3);
                 string t = "";
                 int brack_count = 0;
-                for (int j = 0; j < st.length(); j++) {
+                for (ulong j = 0; j < st.length(); j++) {
                     if (st[j] == '(')
                         brack_count++;
                     if (st[j] == ')') 
@@ -275,7 +275,7 @@ string optimize_if_else(string s){
                         else
                             ret.append(t);
                         t = "";
-                    }       
+                    }
                 }
                 return ret;
             }
@@ -284,11 +284,11 @@ string optimize_if_else(string s){
     return s;
 }
 
-int optimize(string s) {
+void optimize(string s) {
     string t = "";
     FILE* fp = fopen("./bin/opt.txt", "w");
     int brack_count = 0;
-    for (int i = 0; i < s.length(); i++) {
+    for (ulong i = 0; i < s.length(); i++) {
         if (s[i] == '(')
             brack_count++;
         if (s[i] == ')')
