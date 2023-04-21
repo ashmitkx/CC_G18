@@ -130,7 +130,42 @@ Value *NodeTernary::llvm_codegen(LLVMCompiler *compiler) {
 }
 
 Value *NodeIf::llvm_codegen(LLVMCompiler *compiler) {
-    return nullptr;
+    Value* cond_val = expression->llvm_codegen(compiler);
+    if (!cond_val) // if the expression is null, we can't do anything
+        return nullptr;
+    cond_val = compiler->builder.CreateICmpNE(cond_val, compiler->builder.getInt32(0), "ifcond");
+    
+    Function *func = compiler->builder.GetInsertBlock()->getParent(); // get the current function we're working on
+    
+    BasicBlock *then_bb = BasicBlock::Create(*compiler->context, "then", func); // attach the then block to the current function
+    BasicBlock *else_bb = BasicBlock::Create(*compiler->context, "else");
+    BasicBlock *merge_bb = BasicBlock::Create(*compiler->context, "ifcont");
+    
+    compiler->builder.CreateCondBr(cond_val, then_bb, else_bb); // insert the conditional branch
+    
+    compiler->builder.SetInsertPoint(then_bb); //  start working on the then block
+    Value *then_val = left->llvm_codegen(compiler); // let the rest of the codegen happen in the then block
+    if (!then_val) 
+        return nullptr;
+    compiler->builder.CreateBr(merge_bb); // mandatory jump as per LLVM spec
+    then_bb = compiler->builder.GetInsertBlock(); // codegen can change the current block, update then_bb for the PHI node
+    
+    func->getBasicBlockList().push_back(else_bb); // attach the else block to the function
+    compiler->builder.SetInsertPoint(else_bb);
+    Value *else_val = right->llvm_codegen(compiler);
+    if (!else_val)
+        return nullptr;
+    compiler->builder.CreateBr(merge_bb);
+    else_bb = compiler->builder.GetInsertBlock();
+    
+    func->getBasicBlockList().push_back(merge_bb); // attach the merge block to the function
+    compiler->builder.SetInsertPoint(merge_bb); // some other part of the codegn will take care of this block
+    
+    PHINode *phi_node = compiler->builder.CreatePHI(compiler->builder.getInt32Ty(), 2, "iftmp");
+    phi_node->addIncoming(then_val, then_bb);
+    phi_node->addIncoming(else_val, else_bb);
+    
+    return phi_node;
 }
 
 Value *NodeFunct::llvm_codegen(LLVMCompiler *compiler) {
