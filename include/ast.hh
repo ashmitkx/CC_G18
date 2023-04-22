@@ -121,9 +121,9 @@ struct NodeIf: public Node {
     llvm::Value *llvm_codegen(LLVMCompiler *compiler);
 };
 
-struct NodeFunct: public Node
+struct NodeFunctDecl: public Node
 {
-    NodeFunct(std::string id,
+    NodeFunctDecl(std::string id,
               std::string return_datatype,
               std::vector<std::pair<std::string, std::string>>& parameter_list,
               Node* body);
@@ -136,5 +136,15 @@ struct NodeFunct: public Node
     
     llvm::Value* llvm_codegen(LLVMCompiler* compiler);
 };
+
+// struct NodeFunctCall: public Node {
+//     NodeFunctCall(std::string id, std::vector<Node*>& parameter_list);
+    
+//     std::string name;
+//     std::vector<Node*> parameter_list;
+//     std::string to_string();
+    
+//     llvm::Value* llvm_codegen(LLVMCompiler* compiler);
+// };
 
 #endif

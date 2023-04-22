@@ -148,14 +148,14 @@ std::string NodeIdent::to_string() {
     return identifier;
 }
 
-NodeFunct::NodeFunct(std::string id, std::string return_dtype, std::vector<std::pair<std::string, std::string>>& par_list, Node* function_body) {
+NodeFunctDecl::NodeFunctDecl(std::string id, std::string return_dtype, std::vector<std::pair<std::string, std::string>>& par_list, Node* function_body) {
     name = id;
     body = function_body;
     return_type = return_dtype;
     parameter_list = par_list;
 }
 
-std::string NodeFunct:: to_string() {
+std::string NodeFunctDecl:: to_string() {
     std::string parameters = "(";
     for(auto& param: parameter_list)
     {
@@ -163,5 +163,21 @@ std::string NodeFunct:: to_string() {
     }
     parameters += ')';
     
-    return "(fun " + parameters + return_type + body -> to_string() + ")";
+    return "(fun " + name + parameters + " : " + return_type + body -> to_string() + ")";
 }
+
+// NodeFunctCall::NodeFunctCall(std::string id, std::vector<Node*>& arg_list) {
+//     name = id;
+//     arguments = arg_list;
+// }
+
+// std::string NodeFunctCall::to_string() {
+//     std::string args = "(";
+//     for(auto& arg: arguments)
+//     {
+//         args += arg -> to_string() + " ";
+//     }
+//     args += ')';
+    
+//     return "(call " + name + args + ")";
+// }

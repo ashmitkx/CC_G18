@@ -44,6 +44,18 @@ int main_found = 0;
 [0-9]+    { yylval.lexeme = std::string(yytext); return TINT_LIT; }
 [a-zA-Z]+ { yylval.lexeme = std::string(yytext); return TIDENT; }
 [ \t\n]   { /* skip */ }
+<<EOF>>   { if(main_found == 0)
+                yyerror("No main function found.");
+            
+            if(lparencount != 0)
+                yyerror("Unbalanced parenthesis.");
+            
+            if(lbracecount != 0)
+                yyerror("Unbalanced parenthesis.");
+            
+            return 0;
+          }
+.         { yyerror("unknown char."); }
 
 %%
 

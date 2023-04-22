@@ -77,9 +77,30 @@ Stmt : TLET TIDENT TCOLON TTYPE TEQUAL Expr TSCOL
      {
         $$ = new NodeIf($2, $4, $8);
      }
-     /* | TFUN TIDENT TLPAREN ??? TRPAREN TCOLON TTYPE TLBRACE StmtList TRBRACE
+     | TFUN TMAIN TLPAREN TRPAREN TCOLON TTYPE TLBRACE StmtList TRBRACE
      {
-     } */
+        if(symbol_table.contains("main")) {
+            // tried to redeclare function, so error
+            yyerror("tried to redeclare function.\n");
+        } else if ($6 != "int") {
+            // main function must return int
+            yyerror("main function must return int.\n");
+        } else {
+            symbol_table.insert("main", $6);  
+                
+            auto empty_vector = std::vector<std::pair<std::string, std::string>>();
+            $$ = new NodeFunctDecl("main", $6, empty_vector, $8);
+        }
+     }
+     /* | TMAIN TLPAREN TRPAREN 
+        {
+            if(!symbol_table.contains("main")) {
+                // tried to call undeclared function, so error
+                yyerror("tried to call undeclared function.\n");
+            } else {
+                $$ = new NodeFunctCall("main", std::vector<NodeExpr*>());
+            }
+        } */
      ;
 
 Expr : TINT_LIT               

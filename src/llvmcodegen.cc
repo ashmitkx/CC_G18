@@ -38,32 +38,8 @@ void LLVMCompiler::compile(Node *root) {
         module.getFunction("printi");
     */
 
-    /* Main Function */
-    // int main();
-    FunctionType *main_func_type = FunctionType::get(
-        builder.getInt32Ty(), {}, false /* is vararg */
-    );
-    Function *main_func = Function::Create(
-        main_func_type,
-        GlobalValue::ExternalLinkage,
-        "main",
-        &module
-    );
-
-    // create main function block
-    BasicBlock *main_func_entry_bb = BasicBlock::Create(
-        *context,
-        "entry",
-        main_func
-    );
-
-    // move the builder to the start of the main function block
-    builder.SetInsertPoint(main_func_entry_bb);
-
+    // start off the codegen from AST root, probably dont need the return value
     root->llvm_codegen(this);
-
-    // return 0;
-    builder.CreateRet(builder.getInt32(0));
 }
 
 void LLVMCompiler::dump() {
@@ -80,7 +56,7 @@ void LLVMCompiler::write(std::string file_name) {
 
 //  ┌―――――――――――――――――――――┐  //
 //  │ AST -> LLVM Codegen │  //
-// └―――――――――――――――――――――┘   //
+//  └―――――――――――――――――――――┘  //
 
 // codegen for statements
 Value *NodeStmts::llvm_codegen(LLVMCompiler *compiler) {
@@ -168,9 +144,27 @@ Value *NodeIf::llvm_codegen(LLVMCompiler *compiler) {
     return phi_node;
 }
 
-Value *NodeFunct::llvm_codegen(LLVMCompiler *compiler) {
-    return nullptr;
+Value *NodeFunctDecl::llvm_codegen(LLVMCompiler *compiler) {
+    FunctionType* func_type =
+        FunctionType::get(compiler->builder.getInt32Ty(), {}, false);  // return type, arguments, varargs
+
+    Function* func = Function::Create(func_type, GlobalValue::ExternalLinkage, name, &compiler->module);
+    BasicBlock* func_entry_bb = BasicBlock::Create(*compiler->context, "entry", func);
+    compiler->builder.SetInsertPoint(func_entry_bb);
+    
+    // start codegen for the function body
+    body->llvm_codegen(compiler); 
+    
+    // return 0;
+    compiler->builder.CreateRet(compiler->builder.getInt32(0));
+    
+    return func;
 }
+
+// Value *NodeFunctCall::llvm_codegen(LLVMCompiler* compiler) {
+//     Function* func = compiler->module.getFunction(name);
+//     return compiler->builder.CreateCall(func, {});
+// }
 
 Value *NodeDecl::llvm_codegen(LLVMCompiler *compiler) {
     Value *expr = expression->llvm_codegen(compiler);
