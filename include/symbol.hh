@@ -3,6 +3,7 @@
 
 #include <set>
 #include <string>
+#include <vector>
 #include "ast.hh"
 
 
@@ -15,4 +16,12 @@ struct SymbolTable {
     std::string get_type(std::string key);
 };
 
+struct SymbolTableVector
+{
+    std::vector <SymbolTable> vectorST;
+
+    bool contains(std::string key);
+    void insert(SymbolTable* st);
+    void remove();
+};
 #endif
