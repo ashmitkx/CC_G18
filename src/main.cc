@@ -287,6 +287,7 @@ string optimize_if_else(string s){
 void optimize(string s) {
     string t = "";
     FILE* fp = fopen("./bin/opt.txt", "w");
+    fputs("(begin", fp);
     int brack_count = 0;
     for (ulong i = 0; i < s.length(); i++) {
         if (s[i] == '(')
@@ -304,6 +305,7 @@ void optimize(string s) {
             t = "";
         }
     }
+    fputs(")", fp);
     fclose(fp);
 }
 
