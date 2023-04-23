@@ -12,7 +12,7 @@ Base node class. Defined as `abstract`.
 */
 struct Node {
     enum NodeType {
-        BIN_OP, INT_LIT, STMTS, ASSN, DBG, IDENT, TERNARY, ASSIGN
+        BIN_OP, INT_LIT, STMTS, ASSN, DBG, IDENT, TERNARY, ASSIGN, PARAM_LIST, RETURN
     } type;
     
     std::string dtype;
@@ -121,30 +121,50 @@ struct NodeIf: public Node {
     llvm::Value *llvm_codegen(LLVMCompiler *compiler);
 };
 
+struct NodeParamList: public Node {
+    std::vector<NodeIdent*> parameter_list;
+    
+    NodeParamList();
+    void push_back(NodeIdent* param);
+    std::string to_string();
+    llvm::Value* llvm_codegen(LLVMCompiler* compiler);
+};
+
 struct NodeFunctDecl: public Node
 {
     NodeFunctDecl(std::string id,
               std::string return_datatype,
-              std::vector<std::pair<std::string, std::string>>& parameter_list,
+              NodeParamList* param_list,
               Node* body);
     
     Node* body;
     std::string name;
-    std::vector<std::pair<std::string, std::string>> parameter_list;
+    NodeParamList* parameter_list;
     std::string return_type;
     std::string to_string();
     
     llvm::Value* llvm_codegen(LLVMCompiler* compiler);
 };
 
-// struct NodeFunctCall: public Node {
-//     NodeFunctCall(std::string id, std::vector<Node*>& parameter_list);
+
+struct NodeReturn : public Node {
+    Node *expression;
+    NodeReturn(Node *expr);
+    std::string to_string();
+    llvm::Value *llvm_codegen(LLVMCompiler *compiler);
+};
+
+struct NodeFunctCall: public Node {
+    NodeFunctCall(std::string id, std::vector<NodeIdent*>& parameter_list, NodeFunctDecl* funct_decl); 
     
-//     std::string name;
-//     std::vector<Node*> parameter_list;
-//     std::string to_string();
+    std::string name;
+    std::vector<NodeIdent*> arguments; 
+    std::vector<NodeIdent*> formal_param_list;
+    bool valid;
+    bool check_parameters(std::vector<NodeIdent*>& actual_parameter_list, std::vector<NodeIdent*>& formal_parameter_list);
+    std::string to_string();
     
-//     llvm::Value* llvm_codegen(LLVMCompiler* compiler);
-// };
+    llvm::Value* llvm_codegen(LLVMCompiler* compiler);
+};
 
 #endif

@@ -144,27 +144,42 @@ Value *NodeIf::llvm_codegen(LLVMCompiler *compiler) {
     return phi_node;
 }
 
+Value *NodeReturn::llvm_codegen(LLVMCompiler *compiler) {
+    Value* expr_val = expression->llvm_codegen(compiler);
+    return compiler->builder.CreateRet(expr_val);
+}
+
+Value *NodeParamList::llvm_codegen(LLVMCompiler *compiler) {
+    Value* last = nullptr;
+    for (auto node : parameter_list) 
+        last = node->llvm_codegen(compiler);
+
+    return last;
+}
+
 Value *NodeFunctDecl::llvm_codegen(LLVMCompiler *compiler) {
+    auto arg_types = std::vector<Type*>(parameter_list->parameter_list.size(), compiler->builder.getInt32Ty());
+    
     FunctionType* func_type =
-        FunctionType::get(compiler->builder.getInt32Ty(), {}, false);  // return type, arguments, varargs
+        FunctionType::get(compiler->builder.getInt32Ty(), arg_types, false);  // return type, arguments, varargs
 
     Function* func = Function::Create(func_type, GlobalValue::ExternalLinkage, name, &compiler->module);
     BasicBlock* func_entry_bb = BasicBlock::Create(*compiler->context, "entry", func);
     compiler->builder.SetInsertPoint(func_entry_bb);
     
     // start codegen for the function body
-    body->llvm_codegen(compiler); 
-    
-    // return 0;
-    compiler->builder.CreateRet(compiler->builder.getInt32(0));
-    
+    body->llvm_codegen(compiler);
+
     return func;
 }
 
-// Value *NodeFunctCall::llvm_codegen(LLVMCompiler* compiler) {
-//     Function* func = compiler->module.getFunction(name);
-//     return compiler->builder.CreateCall(func, {});
-// }
+Value *NodeFunctCall::llvm_codegen(LLVMCompiler* compiler) {
+    Function* func = compiler->module.getFunction(name);
+    auto args = std::vector<Value*>();
+    for (auto node : formal_param_list)
+        args.push_back(node->llvm_codegen(compiler));
+    return compiler->builder.CreateCall(func, args);
+}
 
 Value *NodeDecl::llvm_codegen(LLVMCompiler *compiler) {
     Value *expr = expression->llvm_codegen(compiler);
