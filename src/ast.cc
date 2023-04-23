@@ -173,6 +173,14 @@ NodeFunctDecl::NodeFunctDecl(std::string id, std::string return_dtype, NodeParam
     body = function_body;
     return_type = return_dtype;
     parameter_list = param_list;
+    
+    // set has_return
+    for (auto i : ((NodeStmts*)body)->list) {
+        if (i->type == RETURN) {
+            has_return = true;
+            break;
+        }
+    }
 }
 
 std::string NodeFunctDecl:: to_string() {

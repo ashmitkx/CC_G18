@@ -142,6 +142,7 @@ struct NodeFunctDecl: public Node
     NodeParamList* parameter_list;
     std::string return_type;
     std::string to_string();
+    bool has_return;
     
     llvm::Value* llvm_codegen(LLVMCompiler* compiler);
 };

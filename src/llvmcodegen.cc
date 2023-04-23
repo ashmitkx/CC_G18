@@ -169,6 +169,9 @@ Value *NodeFunctDecl::llvm_codegen(LLVMCompiler *compiler) {
     
     // start codegen for the function body
     body->llvm_codegen(compiler);
+    
+    if (!has_return)
+        compiler->builder.CreateRet(compiler->builder.getInt32(0));
 
     return func;
 }
