@@ -148,36 +148,84 @@ std::string NodeIdent::to_string() {
     return identifier;
 }
 
-NodeFunctDecl::NodeFunctDecl(std::string id, std::string return_dtype, std::vector<std::pair<std::string, std::string>>& par_list, Node* function_body) {
+NodeParamList::NodeParamList() {
+    type = PARAM_LIST;
+    parameter_list = std::vector<NodeIdent*>();
+}
+
+void NodeParamList::push_back(NodeIdent* param) {
+    parameter_list.push_back(param);
+}
+
+std::string NodeParamList::to_string() {
+    std::string out = "";
+    for (auto i : parameter_list) {
+        out += i->to_string() + ", ";
+    }
+
+    out = out.substr(0, out.size() - 2);
+
+    return out;
+}
+
+NodeFunctDecl::NodeFunctDecl(std::string id, std::string return_dtype, NodeParamList* param_list, Node* function_body) {
     name = id;
     body = function_body;
     return_type = return_dtype;
-    parameter_list = par_list;
+    parameter_list = param_list;
 }
 
 std::string NodeFunctDecl:: to_string() {
-    std::string parameters = "(";
-    for(auto& param: parameter_list)
-    {
-        parameters += "(" + param.first + " " + param.second + ") ";
-    }
-    parameters += ')';
-    
-    return "(fun " + name + parameters + " : " + return_type + body -> to_string() + ")";
+    return "(fun " + name + "(" + parameter_list -> to_string() + ")" + " : " + return_type + body -> to_string() + ")";
 }
 
-// NodeFunctCall::NodeFunctCall(std::string id, std::vector<Node*>& arg_list) {
-//     name = id;
-//     arguments = arg_list;
-// }
+NodeReturn::NodeReturn(Node *expr) {
+    type = RETURN;
+    expression = expr;
+} 
 
-// std::string NodeFunctCall::to_string() {
-//     std::string args = "(";
-//     for(auto& arg: arguments)
-//     {
-//         args += arg -> to_string() + " ";
-//     }
-//     args += ')';
+std::string NodeReturn::to_string() {
+    return "(return " + expression -> to_string() + ")";
+}
+
+NodeFunctCall::NodeFunctCall(std::string id, std::vector<NodeIdent*>& arg_list, NodeFunctDecl* function) {
+    formal_param_list = (function->parameter_list)->parameter_list;
+    name = id;
+    arguments = arg_list;
+    bool valid = check_parameters(arguments, formal_param_list);
+    dtype = function->return_type;
     
-//     return "(call " + name + args + ")";
-// }
+    if (!valid) {
+        std::cerr << "Invalid parameters for function " << name << std::endl;
+        exit(1);
+    }
+}
+
+std::string NodeFunctCall::to_string() {
+    std::string args = "(";
+    for(auto& arg: arguments)
+    {
+        args += arg -> to_string() + ", ";
+    }
+    args = args.substr(0, args.size() - 2);
+    args += ')';
+    
+    return "(call " + name + args + ")";
+}
+
+bool NodeFunctCall::check_parameters(std::vector<NodeIdent*>& actual_parameter_list,
+                                          std::vector<NodeIdent*>& formal_parameter_list) {
+    if(formal_parameter_list.size() != actual_parameter_list.size())
+    {
+        return false;
+    }
+    for(int i = 0; i < formal_parameter_list.size(); i++)
+    {
+        if(!can_coerce(formal_parameter_list[i] -> dtype, actual_parameter_list[i] -> dtype))
+        {
+            return false;
+        }
+        
+    }
+    return true;
+}

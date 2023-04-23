@@ -214,61 +214,60 @@ string eval_if_else_condition(string s) {
     return st.top();
 }
 
-string optimize_if_else(string s){
+string optimize_if_else(string s) {
     string condition = "";
     int bracket = 0;
     int index = 0;
-    if(s[9] != '('){
+    if (s[9] != '(') {
         for (ulong i = 9; i < s.length(); i++) {
-            if(s[i] == ' '){
-                condition = s.substr(9, i-9);
-                index = i+1;
+            if (s[i] == ' ') {
+                condition = s.substr(9, i - 9);
+                index = i + 1;
                 break;
             }
         }
-    }
-    else{
+    } else {
         for (ulong i = 9; i < s.length(); i++) {
-            if(s[i] == '(')
+            if (s[i] == '(')
                 bracket++;
-            if(s[i] == ')')
+            if (s[i] == ')')
                 bracket--;
-            if(bracket == 0){
-                condition = s.substr(9, i-9);
+            if (bracket == 0) {
+                condition = s.substr(9, i - 9);
                 for (ulong j = 0; j < condition.length(); j++)
-                    if((condition[j] <= 'z' && condition[j] >= 'a') || (condition[j] <= 'Z' && condition[j] >= 'A'))
-                            return s;
+                    if ((condition[j] <= 'z' && condition[j] >= 'a') || (condition[j] <= 'Z' && condition[j] >= 'A'))
+                        return s;
                 condition = eval_if_else_condition(condition);
-                index = i+2;
+                index = i + 2;
                 break;
             }
         }
     }
-        
-    if(is_number(condition) || (condition[0] == '-' && is_number(condition.substr(1, condition.length()-1)))){
+
+    if (is_number(condition) || (condition[0] == '-' && is_number(condition.substr(1, condition.length() - 1)))) {
         int cond = stoi(condition);
         string st = "", ret = "";
         int bc = 0;
         for (ulong i = index; i < s.length(); i++) {
-            if(s[i] == '(')
+            if (s[i] == '(')
                 bc++;
-            if(s[i] == ')')
+            if (s[i] == ')')
                 bc--;
-            if(bc == 0){
-                if(cond != 0)
-                    st = s.substr(index, i-index+1);
+            if (bc == 0) {
+                if (cond != 0)
+                    st = s.substr(index, i - index + 1);
                 else
-                    st = s.substr(i+2, s.length()-i-3);
+                    st = s.substr(i + 2, s.length() - i - 3);
                 string t = "";
                 int brack_count = 0;
                 for (ulong j = 0; j < st.length(); j++) {
                     if (st[j] == '(')
                         brack_count++;
-                    if (st[j] == ')') 
+                    if (st[j] == ')')
                         brack_count--;
                     t += st[j];
                     if (brack_count == 0) {
-                        if(t.substr(0, 8) == "(if-else")
+                        if (t.substr(0, 8) == "(if-else")
                             ret.append(optimize_if_else(t));
                         else if (t.substr(0, 4) == "(let")
                             ret.append(optimize_let(t));
@@ -280,7 +279,7 @@ string optimize_if_else(string s){
                 return ret;
             }
         }
-    }      
+    }
     return s;
 }
 
@@ -290,19 +289,37 @@ void optimize(string s) {
     fputs("(begin", fp);
     int brack_count = 0;
     for (ulong i = 0; i < s.length(); i++) {
-        if (s[i] == '(')
-            brack_count++;
-        if (s[i] == ')')
-            brack_count--;
-        t += s[i];
-        if (brack_count == 0) {
-            if(t.substr(0, 8) == "(if-else")
-                fputs(optimize_if_else(t).c_str(), fp);
-            else if (t.substr(0, 4) == "(let") 
-                fputs(optimize_let(t).c_str(), fp);
-            else
-                fputs(t.c_str(), fp);
-            t = "";
+        if (s.substr(i, 8) == "(if-else") {
+            for (ulong j = i; j < s.length(); j++) {
+                if (s[j] == '(')
+                    brack_count++;
+                if (s[j] == ')')
+                    brack_count--;
+                t += s[j];
+                if (brack_count == 0) {
+                    fputs(optimize_if_else(t).c_str(), fp);
+                    t = "";
+                    i = j;
+                    break;
+                }
+            }
+        } else if (s.substr(i, 4) == "(let") {
+            for (ulong j = i; j < s.length(); j++) {
+                if (s[j] == '(')
+                    brack_count++;
+                if (s[j] == ')')
+                    brack_count--;
+                t += s[j];
+                if (brack_count == 0) {
+                    fputs(optimize_let(t).c_str(), fp);
+                    t = "";
+                    i = j;
+                    break;
+                }
+            }
+        } else {
+            char c = s[i];
+            fputc(c, fp);
         }
     }
     fputs(")", fp);
