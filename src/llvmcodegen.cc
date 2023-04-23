@@ -196,7 +196,9 @@ Value *NodeDecl::llvm_codegen(LLVMCompiler *compiler) {
 
     compiler->locals[identifier] = alloc;
 
-    return compiler->builder.CreateStore(expr, alloc);
+    compiler->builder.CreateStore(expr, alloc);
+
+    return expr;
 }
 
 Value *NodeIdent::llvm_codegen(LLVMCompiler *compiler) {
