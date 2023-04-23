@@ -83,7 +83,7 @@ std::string NodeTernary::to_string() {
     return "(?: " + condition->to_string() + ' ' + left->to_string() + ' ' + right->to_string() + ')';
 }
 
-NodeInt::NodeInt(long val) {
+NodeInt::NodeInt(long long val) {
     type = INT_LIT;
     value = val;
 

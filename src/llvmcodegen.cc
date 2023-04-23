@@ -25,7 +25,7 @@ void LLVMCompiler::compile(Node *root) {
     // void printi();
     FunctionType *printi_func_type = FunctionType::get(
         builder.getVoidTy(),
-        {builder.getInt32Ty()},
+        {builder.getInt64Ty()},
         false
     );
     Function::Create(
@@ -78,7 +78,7 @@ Value *NodeDebug::llvm_codegen(LLVMCompiler *compiler) {
 }
 
 Value *NodeInt::llvm_codegen(LLVMCompiler *compiler) {
-    return compiler->builder.getInt32(value);
+    return compiler->builder.getInt64(value);
 }
 
 Value *NodeBinOp::llvm_codegen(LLVMCompiler *compiler) {
@@ -109,7 +109,7 @@ Value *NodeIf::llvm_codegen(LLVMCompiler *compiler) {
     Value* cond_val = expression->llvm_codegen(compiler);
     if (!cond_val) // if the expression is null, we can't do anything
         return nullptr;
-    cond_val = compiler->builder.CreateICmpNE(cond_val, compiler->builder.getInt32(0), "ifcond");
+    cond_val = compiler->builder.CreateICmpNE(cond_val, compiler->builder.getInt64(0), "ifcond");
     
     Function *func = compiler->builder.GetInsertBlock()->getParent(); // get the current function we're working on
     
@@ -137,7 +137,7 @@ Value *NodeIf::llvm_codegen(LLVMCompiler *compiler) {
     func->getBasicBlockList().push_back(merge_bb); // attach the merge block to the function
     compiler->builder.SetInsertPoint(merge_bb); // some other part of the codegn will take care of this block
     
-    PHINode *phi_node = compiler->builder.CreatePHI(compiler->builder.getInt32Ty(), 2, "iftmp");
+    PHINode *phi_node = compiler->builder.CreatePHI(compiler->builder.getInt64Ty(), 2, "iftmp");
     phi_node->addIncoming(then_val, then_bb);
     phi_node->addIncoming(else_val, else_bb);
     
@@ -158,10 +158,10 @@ Value *NodeParamList::llvm_codegen(LLVMCompiler *compiler) {
 }
 
 Value *NodeFunctDecl::llvm_codegen(LLVMCompiler *compiler) {
-    auto arg_types = std::vector<Type*>(parameter_list->parameter_list.size(), compiler->builder.getInt32Ty());
+    auto arg_types = std::vector<Type*>(parameter_list->parameter_list.size(), compiler->builder.getInt64Ty());
     
     FunctionType* func_type =
-        FunctionType::get(compiler->builder.getInt32Ty(), arg_types, false);  // return type, arguments, varargs
+        FunctionType::get(compiler->builder.getInt64Ty(), arg_types, false);  // return type, arguments, varargs
 
     Function* func = Function::Create(func_type, GlobalValue::ExternalLinkage, name, &compiler->module);
     BasicBlock* func_entry_bb = BasicBlock::Create(*compiler->context, "entry", func);
@@ -171,7 +171,7 @@ Value *NodeFunctDecl::llvm_codegen(LLVMCompiler *compiler) {
     body->llvm_codegen(compiler);
     
     if (!has_return)
-        compiler->builder.CreateRet(compiler->builder.getInt32(0));
+        compiler->builder.CreateRet(compiler->builder.getInt64(0));
 
     return func;
 }
@@ -192,7 +192,7 @@ Value *NodeDecl::llvm_codegen(LLVMCompiler *compiler) {
         MAIN_FUNC->getEntryBlock().begin()
     );
 
-    AllocaInst *alloc = temp_builder.CreateAlloca(compiler->builder.getInt32Ty(), 0, identifier);
+    AllocaInst *alloc = temp_builder.CreateAlloca(compiler->builder.getInt64Ty(), 0, identifier);
 
     compiler->locals[identifier] = alloc;
 
@@ -203,7 +203,7 @@ Value *NodeIdent::llvm_codegen(LLVMCompiler *compiler) {
     AllocaInst *alloc = compiler->locals[identifier];
 
     // if your LLVM_MAJOR_VERSION >= 14
-    return compiler->builder.CreateLoad(compiler->builder.getInt32Ty(), alloc, identifier);
+    return compiler->builder.CreateLoad(compiler->builder.getInt64Ty(), alloc, identifier);
 }
 
 #undef MAIN_FUNC
