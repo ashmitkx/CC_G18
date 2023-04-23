@@ -20,7 +20,7 @@ extern int yyparse();
 
 extern NodeStmts* final_values;
 
-SymbolTableStack symbol_table_stack
+SymbolTableStack symbol_table_stack;
 std::unordered_map<std::string, NodeFunctDecl*> function_table;
 int yyerror(std::string msg);
 }
@@ -98,36 +98,43 @@ Stmt : TLET TIDENT TCOLON TTYPE TEQUAL Expr TSCOL
             symbol_table_stack.insert("main", $6);  
                
             NodeParamList* empty_vector = new NodeParamList();
-            $$ = new NodeFunctDecl("main", $6, empty_vector, $8);
-
+            $$ = new NodeFunctDecl("main", $6, empty_vector, $9);
         }
 
         symbol_table_stack.destroy_context();
      }
-     | TFUN TIDENT TLPAREN ParamList TRPAREN TCOLON TTYPE TLBRACE StmtList TRBRACE
+     | TFUN TIDENT TLPAREN {
+        symbol_table_stack.create_context();
+     } ParamList TRPAREN TCOLON TTYPE TLBRACE StmtList TRBRACE
      {
-        if(symbol_table.contains($2)) {
+        if(symbol_table_stack.contains($2, true)) {
             // tried to redeclare function, so error
             yyerror("tried to redeclare function.\n");
         } else {
-            symbol_table.insert($2, $7);
+            symbol_table_stack.insert($2, $8);
             
-            $$ = new NodeFunctDecl($2, $7, (NodeParamList*)$4, $9);
+            $$ = new NodeFunctDecl($2, $8, (NodeParamList*)$5, $10);
             function_table[$2] = ((NodeFunctDecl*)$$);
         }
+        
+        symbol_table_stack.destroy_context();
      }
-     | TFUN TIDENT TLPAREN TRPAREN TCOLON TTYPE TLBRACE StmtList TRBRACE
+     | TFUN TIDENT TLPAREN {
+        symbol_table_stack.create_context();
+     } TRPAREN TCOLON TTYPE TLBRACE StmtList TRBRACE
      {
-        if(symbol_table.contains($2)) {
+        if(symbol_table_stack.contains($2, true)) {
             // tried to redeclare function, so error
             yyerror("tried to redeclare function.\n");
         } else {
-            symbol_table.insert($2, $6);
+            symbol_table_stack.insert($2, $7);
             
             NodeParamList* empty_vector = new NodeParamList();
-            $$ = new NodeFunctDecl($2, $6, empty_vector, $8);
+            $$ = new NodeFunctDecl($2, $7, empty_vector, $9);
             function_table[$2] = ((NodeFunctDecl*)$$);
         }
+        
+        symbol_table_stack.destroy_context();
      }
      | TRET Expr TSCOL
      { 
@@ -137,21 +144,21 @@ Stmt : TLET TIDENT TCOLON TTYPE TEQUAL Expr TSCOL
      
 ParamList : TIDENT TCOLON TTYPE
           { $$ = new NodeParamList();
-            symbol_table.insert($1, $3);
+            symbol_table_stack.insert($1, $3);
             NodeIdent* ident = new NodeIdent($1, $3);
             ((NodeParamList*)$$)->push_back(ident); }//add tident and ttypr to symbol table
           | ParamList TCOMMA TIDENT TCOLON TTYPE
-          { symbol_table.insert($3, $5);
+          { symbol_table_stack.insert($3, $5);
             NodeIdent* ident = new NodeIdent($3, $5);
             ((NodeParamList*)$$)->push_back(ident); }
           ;
           
 ActualParamList : TIDENT
                 { $$ = new NodeParamList();
-                  NodeIdent* ident = new NodeIdent($1, symbol_table.get_type($1));
+                  NodeIdent* ident = new NodeIdent($1, symbol_table_stack.get_type($1));
                   ((NodeParamList*)$$)->push_back(ident); }
                 | ActualParamList TCOMMA TIDENT
-                { NodeIdent* ident = new NodeIdent($3, symbol_table.get_type($3));
+                { NodeIdent* ident = new NodeIdent($3, symbol_table_stack.get_type($3));
                   ((NodeParamList*)$$)->push_back(ident); }
                 ;
 
@@ -177,20 +184,20 @@ Expr : TINT_LIT
      | TLPAREN Expr TRPAREN { $$ = $2; }
      | TIDENT TLPAREN TRPAREN
      {
-        if(symbol_table.contains($1)) {
+        // if(symbol_table_stack.contains($1, false)) {
             std::vector<NodeIdent *> empty_vector;
             $$ = new NodeFunctCall($1, empty_vector, function_table[$1]);
-        } else {
-            yyerror("tried to call undeclared function.\n");
-        }
+        // } else {
+        //     yyerror("tried to call undeclared function.\n");
+        // }
      }
      | TIDENT TLPAREN ActualParamList TRPAREN
      {
-        if(symbol_table.contains($1)) {
+        // if(symbol_table_stack.contains($1, false)) {
             $$ = new NodeFunctCall($1, ((NodeParamList*)$3) -> parameter_list, function_table[$1]);
-        } else {
-            yyerror("tried to call undeclared function.\n");
-        }
+        // } else {
+        //     yyerror("tried to call undeclared function.\n");
+        // }
      }
      ;
      
