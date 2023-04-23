@@ -5,10 +5,17 @@ fun fact() : int {
 fun main() : int {
     let x : int = 1*2+3;
     
-    if 0 {
-        dbg 1;
-    } else {
-        dbg 2;
+    if 1 {
+        let x : short = 2;
+        if 1 {
+            let x : short = 1;
+            dbg x; 
+        } else {
+            dbg 0;
+        }
+    } else { 
+        let y : short = 0; 
+        dbg y;
     }
     
     let y: int = fact();

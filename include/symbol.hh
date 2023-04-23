@@ -18,10 +18,26 @@ struct SymbolTable {
 
 struct SymbolTableVector
 {
+    SymbolTableVector();
     std::vector <SymbolTable> vectorST;
-
-    bool contains(std::string key);
-    void insert(SymbolTable* st);
-    void remove();
+    void create_scope();
+    bool contains(std::string key, bool redefine);
+    void insert(std::string key, std::string type);
+    std::string get_type(std::string key);
+    void destroy_scope();
 };
+
+struct SymbolTableStack
+{
+    SymbolTableStack();
+    std::vector <SymbolTableVector> stackST;
+    void create_scope();
+    void create_context();
+    bool contains(std::string key, bool redefine);
+    void insert(std::string key, std::string type);
+    std::string get_type(std::string key);
+    void destroy_scope();
+    void destroy_context();
+};
+
 #endif
